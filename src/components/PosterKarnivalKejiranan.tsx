@@ -3,15 +3,19 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  Layers,
+  RotateCcw,
   Upload,
-  X,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import gotongRoyongImg from '../assets/images/contoh_gotong_royong_1794840939245.jpg';
 import ziarahImg from '../assets/images/zon_ziarah_kebajikan_1794841615693.jpg';
 import sukanekaImg from '../assets/images/zon_sukaneka_kejiranan_1794841615757.jpg';
 import jamuanImg from '../assets/images/zon_jamuan_muafakat_1794841621018.jpg';
 import { ResilientImage } from './ResilientImage';
+
+const DEFAULT_POSTER_SRC =
+  '/media/Poster%20Karnival%20Kejiranan%20Taman%20Harmoni%20%281%29.png';
 
 interface PosterZone {
   id: string;
@@ -153,11 +157,14 @@ export function PosterKarnivalKejiranan() {
   const [selectedZoneId, setSelectedZoneId] = useState<string>(POSTER_ZONES[0].id);
   const [isExplanationOpen, setIsExplanationOpen] = useState<boolean>(true);
   const [uploadedPosterUrl, setUploadedPosterUrl] = useState<string | null>(null);
-  const [staticPosterAvailable, setStaticPosterAvailable] = useState<boolean>(false);
+  const [posterError, setPosterError] = useState<boolean>(false);
+  const [zoomPercent, setZoomPercent] = useState<number>(100);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const activeZone =
     POSTER_ZONES.find((zone) => zone.id === selectedZoneId) ?? POSTER_ZONES[0];
+
+  const activePosterSrc = uploadedPosterUrl || DEFAULT_POSTER_SRC;
 
   useEffect(() => {
     return () => {
@@ -173,6 +180,8 @@ export function PosterKarnivalKejiranan() {
     if (uploadedPosterUrl) {
       URL.revokeObjectURL(uploadedPosterUrl);
     }
+    setPosterError(false);
+    setZoomPercent(100);
     setUploadedPosterUrl(URL.createObjectURL(file));
   }
 
@@ -181,104 +190,163 @@ export function PosterKarnivalKejiranan() {
       URL.revokeObjectURL(uploadedPosterUrl);
     }
     setUploadedPosterUrl(null);
+    setPosterError(false);
+    setZoomPercent(100);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   }
 
+  function handleZoomIn() {
+    setZoomPercent((prev) => Math.min(200, prev + 25));
+  }
+
+  function handleZoomOut() {
+    setZoomPercent((prev) => Math.max(100, prev - 25));
+  }
+
+  function handleResetZoom() {
+    setZoomPercent(100);
+  }
+
   return (
     <div className="space-y-8">
-      {/* Bingkai Utama Poster Digital Gaya Canva Interaktif */}
+      {/* Bingkai Utama Poster Karnival Lengkap + 4 Zon Interaktif */}
       <div className="bg-white rounded-3xl border-2 border-[#57B8F2] shadow-sm overflow-hidden">
         {/* Kepala Poster Karnival */}
         <div className="bg-gradient-to-r from-[#DDF1FD] via-[#FFF8E9] to-[#EAF9F1] border-b-2 border-[#A6DCFA] px-6 py-6 sm:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-xs font-bold text-[#166088] tracking-wide mb-1">
-                Poster Digital Interaktif · 4 Zon Aktiviti
+                Poster Lengkap · 4 Zon Aktiviti
               </p>
               <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#243B53]">
                 Karnival Kejiranan Taman Harmoni
               </h2>
               <p className="mt-1.5 text-sm text-[#334E68]">
-                Tekan mana-mana zon aktiviti pada poster di bawah untuk meneroka
-                ayat penyata.
+                Perhatikan poster lengkap di bawah dan tekan mana-mana zon
+                aktiviti untuk meneroka contoh ayat penyata.
               </p>
             </div>
 
-            <div className="shrink-0">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePosterUpload}
-                className="sr-only"
-                id="poster-upload-input"
-              />
-              {uploadedPosterUrl ? (
+            {!posterError && (
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
                 <button
                   type="button"
-                  onClick={handleClearUploadedPoster}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-[#FFF0EE] text-[#243B53] border-2 border-[#FFB8B3] transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
+                  onClick={handleZoomOut}
+                  disabled={zoomPercent <= 100}
+                  aria-label="Zum keluar poster"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-[#FFF8E9] text-[#243B53] border-2 border-[#A6DCFA] disabled:opacity-45 disabled:cursor-not-allowed transition-colors min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
                 >
-                  <X className="w-4 h-4" aria-hidden="true" />
-                  <span>Tutup Paparan Poster Asal</span>
+                  <ZoomOut className="w-4 h-4" aria-hidden="true" />
+                  <span className="hidden sm:inline">Zum Keluar</span>
                 </button>
-              ) : (
                 <button
                   type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-[#FFF8E9] text-[#243B53] border-2 border-[#A6DCFA] transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
+                  onClick={handleResetZoom}
+                  disabled={zoomPercent === 100}
+                  aria-label="Kembali ke saiz asal poster"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white hover:bg-[#FFF8E9] text-[#243B53] border-2 border-[#A6DCFA] disabled:opacity-60 transition-colors min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53] tabular-nums"
                 >
-                  <Upload className="w-4 h-4" aria-hidden="true" />
-                  <span>Papar Fail Poster Asal</span>
+                  <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>{zoomPercent}%</span>
                 </button>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={handleZoomIn}
+                  disabled={zoomPercent >= 200}
+                  aria-label="Zum masuk poster"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-[#FFD65A] hover:bg-[#F7C942] text-[#243B53] border-2 border-[#EFC034] disabled:opacity-45 disabled:cursor-not-allowed transition-colors min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
+                >
+                  <ZoomIn className="w-4 h-4" aria-hidden="true" />
+                  <span className="hidden sm:inline">Zum Masuk</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="p-5 sm:p-8 space-y-6">
-          {/* Sokongan automatik untuk fail poster asal jika dimasukkan di public/images/poster-karnival-taman-harmoni.png atau dimuat naik */}
-          <img
-            src="/images/poster-karnival-taman-harmoni.png"
-            alt="Poster asal Karnival Kejiranan Taman Harmoni"
-            onLoad={() => setStaticPosterAvailable(true)}
-            onError={() => setStaticPosterAvailable(false)}
-            className={
-              staticPosterAvailable && !uploadedPosterUrl
-                ? 'w-full max-h-[520px] object-contain rounded-2xl border-2 border-[#BCE3FA] bg-[#FFF8E9]'
-                : 'hidden'
-            }
-          />
-
-          {uploadedPosterUrl && (
-            <div className="rounded-2xl border-2 border-[#FFD65A] bg-[#FFF8E9] p-4">
-              <div className="flex items-center gap-2 text-xs font-bold text-[#7A5900] mb-3">
-                <ImageIcon className="w-4 h-4" aria-hidden="true" />
-                <span>Paparan Poster Asal yang Dimuat Naik</span>
+          {/* Paparan Automatik Poster Asal (Satu Imej Lengkap) */}
+          {!posterError ? (
+            <div className="rounded-2xl border-2 border-[#BCE3FA] bg-[#FFF8E9] p-3 sm:p-4 overflow-auto max-h-[660px]">
+              <div
+                className="mx-auto transition-[width] duration-200"
+                style={{ width: `${zoomPercent}%`, minWidth: '100%' }}
+              >
+                <img
+                  src={activePosterSrc}
+                  alt="Poster lengkap Karnival Kejiranan Taman Harmoni yang mengandungi empat zon aktiviti kejiranan."
+                  onLoad={() => setPosterError(false)}
+                  onError={() => setPosterError(true)}
+                  className={`w-full object-contain mx-auto rounded-xl bg-white ${
+                    zoomPercent === 100 ? 'max-h-[620px]' : ''
+                  }`}
+                />
               </div>
-              <img
-                src={uploadedPosterUrl}
-                alt="Poster asal Karnival Kejiranan Taman Harmoni yang dimuat naik oleh guru"
-                className="w-full max-h-[540px] object-contain rounded-xl bg-white border border-[#F5E1B0]"
-              />
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-[#FFF8E9] border-2 border-[#FFE082] p-6 text-center space-y-3">
+              <div className="w-12 h-12 rounded-xl bg-[#FFD65A] text-[#243B53] flex items-center justify-center mx-auto">
+                <ImageIcon className="w-6 h-6" aria-hidden="true" />
+              </div>
+              <p className="text-sm sm:text-base font-semibold text-[#243B53]">
+                Poster asal tidak ditemui pada laluan pelayan semasa.
+              </p>
+              <p className="text-xs sm:text-sm text-[#486581] max-w-lg mx-auto">
+                Pastikan fail disimpan di{' '}
+                <code className="bg-white px-1.5 py-0.5 rounded border border-[#F5E1B0] font-mono text-xs text-[#243B53]">
+                  public/media/Poster Karnival Kejiranan Taman Harmoni (1).png
+                </code>
+                .
+              </p>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white hover:bg-[#EAF6FE] text-[#243B53] border-2 border-[#A6DCFA] transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
+                >
+                  <Upload className="w-4 h-4" aria-hidden="true" />
+                  <span>Pilihan Alternatif: Muat Naik Poster Tempatan</span>
+                </button>
+              </div>
             </div>
           )}
 
-          {!staticPosterAvailable && !uploadedPosterUrl && (
-            <div className="rounded-xl bg-[#FFF8E9] border border-[#F5E1B0] px-4 py-3 flex items-start gap-3 text-xs sm:text-sm text-[#334E68]">
-              <Layers className="w-4 h-4 text-[#7A5900] shrink-0 mt-0.5" aria-hidden="true" />
-              <p>
-                Komponen poster empat zon interaktif ini dibina untuk menyokong
-                pembelajaran digital. Fail poster asal boleh diletakkan di{' '}
-                <code className="bg-white px-1.5 py-0.5 rounded border border-[#F5E1B0] font-mono text-xs text-[#243B53]">
-                  public/images/poster-karnival-taman-harmoni.png
-                </code>{' '}
-                atau dipaparkan menggunakan butang <strong>Papar Fail Poster Asal</strong>.
-              </p>
+          {/* Pilihan alternatif guru (disembunyikan daripada paparan biasa) */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePosterUpload}
+            className="sr-only"
+            id="poster-upload-input"
+          />
+          <details className="text-xs text-[#486581]">
+            <summary className="cursor-pointer font-semibold text-[#166088] hover:text-[#243B53] select-none w-fit">
+              Pilihan alternatif guru (ganti imej poster tempatan)
+            </summary>
+            <div className="mt-2.5 flex flex-wrap items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-[#FFF8E9] text-[#243B53] border border-[#A6DCFA] transition-colors min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
+              >
+                <Upload className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Pilih Fail Poster Tempatan</span>
+              </button>
+
+              {uploadedPosterUrl && (
+                <button
+                  type="button"
+                  onClick={handleClearUploadedPoster}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#FFF8E9] hover:bg-[#FFD65A] text-[#243B53] border border-[#EFC034] transition-colors min-h-[36px]"
+                >
+                  <span>Guna Poster Asal Semula</span>
+                </button>
+              )}
             </div>
-          )}
+          </details>
 
           {/* Grid 4 Zon Interaktif dalam Poster Digital */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
