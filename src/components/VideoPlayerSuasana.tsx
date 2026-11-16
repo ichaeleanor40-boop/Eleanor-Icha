@@ -9,7 +9,8 @@ import {
   Upload,
 } from 'lucide-react';
 
-const DEFAULT_VIDEO_SRC = '/videos/suasana-kampung-muafakat.mp4';
+const DEFAULT_VIDEO_SRC =
+  '/media/Video%20Kejiranan%20%28Set%20Induksi%29%20-%20YouTube.mp4';
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
@@ -50,22 +51,26 @@ export function VideoPlayerSuasana() {
 
   function handlePlay() {
     const videoEl = videoRef.current;
-    if (!videoEl || !hasValidVideo) return;
-    void videoEl.play();
+    if (!videoEl || videoError) return;
+    void videoEl.play().catch(() => {
+      setIsPlaying(false);
+    });
   }
 
   function handlePause() {
     const videoEl = videoRef.current;
-    if (!videoEl || !hasValidVideo) return;
+    if (!videoEl || videoError) return;
     videoEl.pause();
   }
 
   function handleReplay() {
     const videoEl = videoRef.current;
-    if (!videoEl || !hasValidVideo) return;
+    if (!videoEl || videoError) return;
     videoEl.currentTime = 0;
     setCurrentTime(0);
-    void videoEl.play();
+    void videoEl.play().catch(() => {
+      setIsPlaying(false);
+    });
   }
 
   function handleToggleMute() {
@@ -105,10 +110,29 @@ export function VideoPlayerSuasana() {
     setVideoSrc(nextUrl);
   }
 
+  function handleResetDefaultVideo() {
+    if (localObjectUrlRef.current) {
+      URL.revokeObjectURL(localObjectUrlRef.current);
+      localObjectUrlRef.current = null;
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    setLoadedFileName(null);
+    setVideoError(false);
+    setHasValidVideo(false);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setVideoSrc(DEFAULT_VIDEO_SRC);
+  }
+
+  const controlsDisabled = videoError;
+
   return (
     <div className="bg-white rounded-2xl border-2 border-[#A6DCFA] shadow-xs overflow-hidden">
       {/* Ruang Paparan Video 16:9 */}
-      <div className="relative aspect-video bg-[#EAF6FE] flex items-center justify-center">
+      <div className="relative aspect-video bg-[#102A43] flex items-center justify-center">
         <video
           ref={videoRef}
           src={videoSrc}
@@ -120,6 +144,10 @@ export function VideoPlayerSuasana() {
             setVideoError(false);
             setDuration(e.currentTarget.duration || 0);
           }}
+          onCanPlay={() => {
+            setHasValidVideo(true);
+            setVideoError(false);
+          }}
           onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
@@ -130,52 +158,39 @@ export function VideoPlayerSuasana() {
             setIsPlaying(false);
           }}
           className={`w-full h-full object-contain bg-[#102A43] ${
-            hasValidVideo ? 'block' : 'hidden'
+            videoError ? 'hidden' : 'block'
           }`}
         >
-          <source src={videoSrc} type="video/mp4" />
           Pelayar anda tidak menyokong pemain video HTML5.
         </video>
 
-        {!hasValidVideo && (
+        {videoError && (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 sm:p-10 text-center bg-gradient-to-br from-[#EAF6FE] via-white to-[#FFF8E9]">
             <div className="w-16 h-16 rounded-2xl bg-[#57B8F2] text-[#243B53] flex items-center justify-center shadow-xs mb-4">
               <Film className="w-8 h-8" aria-hidden="true" />
             </div>
 
             <h3 className="font-display text-lg sm:text-xl font-bold text-[#243B53]">
-              Ruang Video: Suasana Kampung Muafakat (MP4)
+              Video Suasana Kampung Muafakat
             </h3>
 
             <p className="mt-2 text-sm sm:text-base text-[#334E68] max-w-lg leading-relaxed">
-              {videoError
-                ? 'Fail video MP4 sebenar belum dimasukkan ke dalam projek. Apabila fail disediakan, video akan dimainkan terus di sini.'
-                : 'Memeriksa ketersediaan fail video MP4...'}
-            </p>
-
-            <p className="mt-2 text-xs text-[#486581] max-w-md">
-              Laluan aset projek:{' '}
-              <code className="bg-white/90 border border-[#BCE3FA] px-2 py-0.5 rounded text-[#243B53] font-mono">
-                public/videos/suasana-kampung-muafakat.mp4
+              Fail video asal tidak ditemui pada pelayan semasa. Pastikan fail
+              berada di laluan repositori{' '}
+              <code className="bg-white/90 border border-[#BCE3FA] px-2 py-0.5 rounded text-[#243B53] font-mono text-xs">
+                public/media/Video Kejiranan (Set Induksi) - YouTube.mp4
               </code>
+              .
             </p>
 
             <div className="mt-5">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="video/mp4,video/*"
-                onChange={handleLocalFileSelect}
-                className="sr-only"
-                id="local-mp4-upload"
-              />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-white hover:bg-[#FFF8E9] text-[#243B53] border-2 border-[#A6DCFA] transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53] focus-visible:ring-offset-2 shadow-xs"
               >
                 <Upload className="w-4 h-4" aria-hidden="true" />
-                <span>Uji Fail MP4 Tempatan</span>
+                <span>Pilihan Alternatif: Muat Naik Video Tempatan</span>
               </button>
             </div>
           </div>
@@ -189,7 +204,7 @@ export function VideoPlayerSuasana() {
             <button
               type="button"
               onClick={handlePlay}
-              disabled={!hasValidVideo || isPlaying}
+              disabled={controlsDisabled || isPlaying}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-[#FFD65A] hover:bg-[#F7C942] text-[#243B53] border border-[#EFC034] disabled:opacity-45 disabled:cursor-not-allowed transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
             >
               <Play className="w-4 h-4 fill-current" aria-hidden="true" />
@@ -199,7 +214,7 @@ export function VideoPlayerSuasana() {
             <button
               type="button"
               onClick={handlePause}
-              disabled={!hasValidVideo || !isPlaying}
+              disabled={controlsDisabled || !isPlaying}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:bg-[#FFF8E9] text-[#243B53] border border-[#BCE3FA] disabled:opacity-45 disabled:cursor-not-allowed transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
             >
               <Pause className="w-4 h-4" aria-hidden="true" />
@@ -209,7 +224,7 @@ export function VideoPlayerSuasana() {
             <button
               type="button"
               onClick={handleReplay}
-              disabled={!hasValidVideo}
+              disabled={controlsDisabled || (!hasValidVideo && currentTime === 0)}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white hover:bg-[#FFF8E9] text-[#243B53] border border-[#BCE3FA] disabled:opacity-45 disabled:cursor-not-allowed transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
             >
               <RotateCcw className="w-4 h-4" aria-hidden="true" />
@@ -221,7 +236,7 @@ export function VideoPlayerSuasana() {
             <button
               type="button"
               onClick={handleToggleMute}
-              disabled={!hasValidVideo}
+              disabled={controlsDisabled}
               aria-label={isMuted ? 'Pasang bunyi video' : 'Senyapkan bunyi video'}
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold bg-white hover:bg-[#FFF8E9] text-[#243B53] border border-[#BCE3FA] disabled:opacity-45 disabled:cursor-not-allowed transition-colors min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
             >
@@ -242,7 +257,7 @@ export function VideoPlayerSuasana() {
                 step="0.05"
                 value={isMuted ? 0 : volume}
                 onChange={handleVolumeChange}
-                disabled={!hasValidVideo}
+                disabled={controlsDisabled}
                 aria-label="Pelaras kelantangan bunyi video"
                 className="w-24 accent-[#243B53] cursor-pointer disabled:opacity-45"
               />
@@ -254,11 +269,46 @@ export function VideoPlayerSuasana() {
           </div>
         </div>
 
-        {loadedFileName && hasValidVideo && (
-          <p className="mt-2.5 text-xs text-[#166088] font-medium">
-            Fail dimuatkan: {loadedFileName}
-          </p>
-        )}
+        {/* Pilihan alternatif guru (disembunyikan daripada paparan biasa) */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="video/mp4,video/*"
+          onChange={handleLocalFileSelect}
+          className="sr-only"
+          id="local-mp4-upload"
+        />
+
+        <details className="mt-3 pt-2.5 border-t border-[#BCE3FA]/80 text-xs text-[#486581]">
+          <summary className="cursor-pointer font-semibold text-[#166088] hover:text-[#243B53] select-none w-fit">
+            Pilihan alternatif guru (ganti video tempatan)
+          </summary>
+          <div className="mt-2.5 flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-[#FFF8E9] text-[#243B53] border border-[#A6DCFA] transition-colors min-h-[36px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#243B53]"
+            >
+              <Upload className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Pilih Fail MP4 Tempatan</span>
+            </button>
+
+            {loadedFileName && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleResetDefaultVideo}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#FFF8E9] hover:bg-[#FFD65A] text-[#243B53] border border-[#EFC034] transition-colors min-h-[36px]"
+                >
+                  <span>Guna Video Asal Semula</span>
+                </button>
+                <span className="text-xs text-[#166088] font-medium">
+                  Fail alternatif aktif: {loadedFileName}
+                </span>
+              </>
+            )}
+          </div>
+        </details>
       </div>
     </div>
   );
