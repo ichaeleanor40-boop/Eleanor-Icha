@@ -1,0 +1,6 @@
+{
+  "name": "Jom Belajar Ayat Penyata!",
+  "description": "Laman web pembelajaran digital Bahasa Melayu Tahun 4 bertemakan Semangat Kejiranan Memupuk Keharmonian.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

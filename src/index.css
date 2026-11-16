@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Outfit", system-ui, -apple-system, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    color: #243b53;
+    background-color: #fff8e9;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+}
+
+@keyframes harmoni-wave {
+  0%,
+  100% {
+    transform: scaleY(0.45);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.animate-harmoni-wave {
+  transform-origin: bottom;
+  animation: harmoni-wave 0.9s ease-in-out infinite;
+}
+
+@keyframes opd-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes opd-cloud-drift {
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+  50% {
+    transform: translateX(18px);
+  }
+}
+
+@keyframes opd-steam-rise {
+  0% {
+    transform: translateY(6px) scale(0.85);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translateY(-14px) scale(1.15);
+    opacity: 0;
+  }
+}
+
+@keyframes opd-broom-sweep {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes opd-arm-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-16deg);
+  }
+}
+
+@keyframes opd-highlight-pop {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.opd-animate-float {
+  animation: opd-float 3.2s ease-in-out infinite;
+}
+
+.opd-animate-cloud {
+  animation: opd-cloud-drift 7s ease-in-out infinite;
+}
+
+.opd-animate-steam {
+  animation: opd-steam-rise 2.4s ease-out infinite;
+}
+
+.opd-animate-sweep {
+  transform-origin: 50% 10%;
+  animation: opd-broom-sweep 1.8s ease-in-out infinite;
+}
+
+.opd-animate-wave {
+  transform-origin: 20% 80%;
+  animation: opd-arm-wave 1.2s ease-in-out infinite;
+}
+
+.opd-animate-pop {
+  animation: opd-highlight-pop 1.8s ease-in-out infinite;
+}
+
+.opd-stage-paused .opd-animate-float,
+.opd-stage-paused .opd-animate-cloud,
+.opd-stage-paused .opd-animate-steam,
+.opd-stage-paused .opd-animate-sweep,
+.opd-stage-paused .opd-animate-wave,
+.opd-stage-paused .opd-animate-pop {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+}
